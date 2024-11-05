@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 900px;
+            margin-top: 30px;
+        }
+        .product-form, .product-list {
+            margin-bottom: 30px;
+        }
+        .product-list li {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .history {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Asset Management</h1>
+
+        <!-- Search Form -->
+        <div class="mb-4">
+            <h4>Search Products</h4>
+            <input type="text" id="searchInput" class="form-control" placeholder="Search by Asset No, Name, or Model" onkeyup="searchProducts()">
+        </div>
+
+        <!-- Add Product Form -->
+        <div class="product-form mb-4">
+            <h2 class="h4 text-center">Add New Product</h2>
+            <form id="productForm">
+                <div class="mb-3">
+                    <label for="assetNo" class="form-label">Asset Number:</label>
+                    <input type="text" class="form-control" id="assetNo" required>
+                </div>
+                <div class="mb-3">
+                    <label for="productName" class="form-label">Product Name:</label>
+                    <input type="text" class="form-control" id="productName" required>
+                </div>
+                <div class="mb-3">
+                    <label for="productModel" class="form-label">Product Model:</label>
+                    <input type="text" class="form-control" id="productModel" required>
+                </div>
+                <div class="mb-3">
+                    <label for="purchaseDate" class="form-label">Purchase Date:</label>
+                    <input type="text" class="form-control" id="purchaseDate" value="" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="assetStatus" class="form-label">Asset Status:</label>
+                    <select class="form-select" id="assetStatus" required>
+                        <option value="In Use">In Use</option>
+                        <option value="In Store">In Store</option>
+                        <option value="Scrapped">Scrapped</option>
+                        <option value="Non-functional">Non-functional</option>
+                        <option value="Transfer">Transfer</option>
+                        <option value="Waiting for Store Enrol">Waiting for Store Enrol</option>
+                        <option value="Missing">Missing</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Add Product</button>
+            </form>
+        </div>
+
+        <!-- Product List -->
+        <div class="product-list">
+            <h2 class="h4">Products</h2>
+            <ul id="productList" class="list-unstyled"></ul>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS (including Popper for Bootstrap components like modals, dropdowns) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        let products = [];  // Array to store product objects
+
+        // Automatically populate the purchase date field when the page loads
+        document.getElementById('purchaseDate').value = new Date().toLocaleDateString();
+
+        // Add product
+        document.getElementById('productForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Get values from form inputs
+            const assetNo = document.getElementById('assetNo').value;
+            const productName = document.getElementById('productName').value;
+            const productModel = document.getElementById('productModel').value;
+            const purchaseDate = document.getElementById('purchaseDate').value;
+            const assetStatus = document.getElementById('assetStatus').value;
+
+            // Create product object
+            const newProduct = {
+                id: Date.now(),
+                assetNo: assetNo,
+                name: productName,
+                model: productModel,
+                purchaseDate: purchaseDate,
+                status: assetStatus,
+                history: [`Product added: ${productName} (${productModel}) on ${purchaseDate}`]
+            };
+
+            // Add the new product to the products array
+            products.push(newProduct);
+
+            // Clear form fields
+            document.getElementById('assetNo').value = '';
+            document.getElementById('productName').value = '';
+            document.getElementById('productModel').value = '';
+            document.getElementById('purchaseDate').value = new Date().toLocaleDateString();
+            document.getElementById('assetStatus').value = 'In Use';
+
+            // Render the products list
+            renderProducts();
+        });
+
+        // Render all products
+        function renderProducts() {
+            const productList = document.getElementById('productList');
+            productList.innerHTML = '';  // Clear the list before re-rendering
+
+            products.forEach(product => {
+                const productItem = document.createElement('li');
+                productItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Asset No: ${product.assetNo}</strong><br>
+                            <strong>${product.name}</strong> (${product.model})<br>
+                            Purchased: ${product.purchaseDate}<br>
+                            Status: <span class="badge bg-success">${product.status}</span>
+                        </div>
+                        <div>
+                            <button class="btn btn-warning btn-sm me-2" onclick="changeStatus(${product.id})">Change Status</button>
+                            <button class="btn btn-info btn-sm" onclick="changePrice(${product.id})">Change Price</button>
+                        </div>
+                    </div>
+                    <div class="history mt-3">
+                        <strong>History:</strong> 
+                        <ul>
+                            ${product.history.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+                productList.appendChild(productItem);
+            });
+        }
+
+        // Change product status
+        function changeStatus(productId) {
+            const product = products.find(p => p.id === productId);
+            const currentStatus = product.status;
+
+            // Toggle between available and out of stock
+            const newStatus = prompt("Enter new status:", currentStatus);
+            if (newStatus) {
+                // Add a new entry to the history
+                const statusChangeHistory = `Status changed from ${currentStatus} to ${newStatus} on ${new Date().toLocaleString()}`;
+                product.history.push(statusChangeHistory);
+
+                // Update the product status
+                product.status = newStatus;
+
+                // Re-render products
+                renderProducts();
+            }
+        }
+
+        // Search products
+        function searchProducts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filteredProducts = products.filter(product => {
+                return product.assetNo.toLowerCase().includes(searchTerm) ||
+                       product.name.toLowerCase().includes(searchTerm) ||
+                       product.model.toLowerCase().includes(searchTerm);
+            });
+
+            renderFilteredProducts(filteredProducts);
+        }
+
+        // Render filtered products based on search
+        function renderFilteredProducts(filteredProducts) {
+            const productList = document.getElementById('productList');
+            productList.innerHTML = '';  // Clear the list before re-rendering
+
+            filteredProducts.forEach(product => {
+                const productItem = document.createElement('li');
+                productItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Asset No: ${product.assetNo}</strong><br>
+                            <strong>${product.name}</strong> (${product.model})<br>
+                            Purchased: ${product.purchaseDate}<br>
+                            Status: <span class="badge bg-success">${product.status}</span>
+                        </div>
+                        <div>
+                            <button class="btn btn-warning btn-sm me-2" onclick="changeStatus(${product.id})">Change Status</button>
+                            <button class="btn btn-info btn-sm" onclick="changePrice(${product.id})">Change Price</button>
+                        </div>
+                    </div>
+                    <div class="history mt-3">
+                        <strong>History:</strong> 
+                        <ul>
+                            ${product.history.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+                productList.appendChild(productItem);
+            });
+        }
+    </script>
+</body>
+</html>

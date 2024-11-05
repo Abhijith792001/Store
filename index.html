@@ -58,10 +58,10 @@
                 <button id="logoutBtn" class="btn btn-danger">Logout</button>
             </div>
             <!-- Search Bar -->
-        <div class="mb-4 d-flex">
-            <input type="text" id="searchInput" class="form-control" placeholder="Search products by Asset No, Name, or Model" oninput="searchProducts()">
-            <button id="searchBtn" class="btn btn-secondary ms-2" onclick="searchProducts()">Search</button>
-        </div>
+            <div class="mb-4 d-flex">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search products by Asset No, Name, or Model" oninput="searchProducts()">
+                <button id="searchBtn" class="btn btn-secondary ms-2" onclick="searchProducts()">Search</button>
+            </div>
             <!-- Button to Request Handover -->
             <div id="handoverButton" class="text-center mb-4" style="display:none;">
                 <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#handoverRequestModal">Request Handover</button>
@@ -110,7 +110,15 @@
                         <form id="assetDetailsForm">
                             <div class="mb-3">
                                 <label for="assetStatus" class="form-label">Asset Status:</label>
-                                <input type="text" class="form-control" id="assetStatus" required>
+                                <select class="form-select" id="assetStatus" required>
+                                    <option value="In Use">In Use</option>
+                                    <option value="In Store">In Store</option>
+                                    <option value="Scrapped">Scrapped</option>
+                                    <option value="Non-functional">Non-functional</option>
+                                    <option value="Transfer">Transfer</option>
+                                    <option value="Waiting for Store Enrol">Waiting for Store Enrol</option>
+                                    <option value="Missing">Missing</option>
+                                </select>
                             </div>
                             <div class="mb-3">
                                 <label for="location" class="form-label">Location:</label>
@@ -168,29 +176,23 @@
             { username: "movement", password: "movement123", role: "Movement Operation" }
         ];
 
-        // Show login section initially
-        document.getElementById('loginSection').style.display = 'block';
-        document.getElementById('mainContent').style.display = 'none';
-
         // Handle login
         document.getElementById('loginForm').addEventListener('submit', function (e) {
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-
-            currentUser = predefinedUsers.find(user => user.username === username && user.password === password);
-
-            if (currentUser) {
+            const user = predefinedUsers.find(u => u.username === username && u.password === password);
+            if (user) {
+                currentUser = user;
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
-
+                document.getElementById('logoutBtn').style.display = 'block';
                 if (currentUser.role === "Movement Operation" || currentUser.role === "Purchase Operation") {
                     document.getElementById('handoverButton').style.display = 'block';
                 }
                 if (currentUser.role === "Store Operation") {
                     document.getElementById('newRequestButton').style.display = 'block';
                 }
-
                 renderProductList();
             } else {
                 document.getElementById('loginError').style.display = 'block';
@@ -219,6 +221,7 @@
                         <strong>Asset No:</strong> ${product.assetNo} <br>
                         <strong>Name:</strong> ${product.name} <br>
                         <strong>Model:</strong> ${product.model} <br>
+                        <strong>Status:</strong> ${product.status} <br>
                         <button class="btn btn-primary btn-sm mt-3" ${product.status === 'In Use' ? 'disabled' : ''} onclick="setHandoverRequest('${product.assetNo}')">Request Handover</button>
                     `;
                     productList.appendChild(li);
@@ -294,6 +297,31 @@
             }
         }
 
+            function renderHandoverRequests() {
+            const handOverRequestList = document.getElementById('handoverRequestList');
+            const noRequests = document.getElementById('noRequests');
+            handOverRequestList.innerHTML = '';
+
+            const pendingRequests = handOverRequests.filter(request => request.receiver === 'Store Operation' && request.status === 'Pending');
+            
+            if (pendingRequests.length === 0) {
+                noRequests.style.display = 'block';
+            } else {
+                noRequests.style.display = 'none';
+                pendingRequests.forEach(request => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <strong>Asset No:</strong> ${request.assetNo} <br>
+                        <strong>Sender:</strong> ${request.sender} <br>
+                        <strong>Status:</strong> ${request.status} <br>
+                        <button class="btn btn-success btn-sm mt-2" onclick="acceptRequest('${request.assetNo}')">Accept</button>
+                        <button class="btn btn-danger btn-sm mt-2 ms-2" onclick="ignoreRequest('${request.assetNo}')">Ignore</button>
+                    `;
+                    handOverRequestList.appendChild(li);
+                });
+            }
+        }
+
         // Ignore Handover Request (Store Operation)
         function ignoreRequest(assetNo) {
             const requestIndex = handOverRequests.findIndex(req => req.assetNo === assetNo);
@@ -301,6 +329,9 @@
                 handOverRequests.splice(requestIndex, 1);
                 localStorage.setItem('handOverRequests', JSON.stringify(handOverRequests));
                 alert('Handover request ignored');
+                
+                // Re-render the handover request list after ignoring
+                renderHandoverRequests();
             }
         }
 

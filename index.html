@@ -24,6 +24,10 @@
             font-size: 0.9em;
             color: #6c757d;
         }
+        #noProducts, #noRequests {
+            font-size: 1.2em;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -53,7 +57,11 @@
                 <h4>Manage Assets</h4>
                 <button id="logoutBtn" class="btn btn-danger">Logout</button>
             </div>
-
+            <!-- Search Bar -->
+        <div class="mb-4 d-flex">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search products by Asset No, Name, or Model" oninput="searchProducts()">
+            <button id="searchBtn" class="btn btn-secondary ms-2" onclick="searchProducts()">Search</button>
+        </div>
             <!-- Button to Request Handover -->
             <div id="handoverButton" class="text-center mb-4" style="display:none;">
                 <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#handoverRequestModal">Request Handover</button>
@@ -64,60 +72,11 @@
                 <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#handoverRequestModal">View New Requests</button>
             </div>
 
-            <!-- Product Search -->
-            <div class="mb-4">
-                <h4>Search Products</h4>
-                <input type="text" id="searchInput" class="form-control" placeholder="Search by Asset No, Name, or Model" onkeyup="searchProducts()">
-            </div>
-
-            <!-- Button to open Add Product Modal -->
-            <div class="text-center mb-4">
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                    Add Product
-                </button>
-            </div>
-
             <!-- Product List -->
             <div class="product-list">
                 <h2 class="h4">Products</h2>
                 <ul id="productList" class="list-unstyled"></ul>
-            </div>
-        </div>
-
-        <!-- Modal for Product Add -->
-        <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="addProductModalLabel">Add New Product</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="productForm">
-                            <div class="mb-3">
-                                <label for="assetNo" class="form-label">Asset Number:</label>
-                                <input type="text" class="form-control" id="assetNo" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="productName" class="form-label">Product Name:</label>
-                                <input type="text" class="form-control" id="productName" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="productModel" class="form-label">Product Model:</label>
-                                <input type="text" class="form-control" id="productModel" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="purchaseDate" class="form-label">Purchase Date:</label>
-                                <input type="date" class="form-control" id="purchaseDate" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="assetStatus" class="form-label">Asset Status:</label>
-                                <input type="text" class="form-control" id="assetStatus" value="Waiting for Store Enrol" readonly>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Add Product</button>
-                        </form>
-                    </div>
-                </div>
+                <div id="noProducts" style="display:none;">No products available.</div>
             </div>
         </div>
 
@@ -133,6 +92,60 @@
                         <ul id="handoverRequestList" class="list-unstyled">
                             <!-- Hand-Over request items will be dynamically inserted here -->
                         </ul>
+                        <div id="noRequests" style="display:none;">No pending requests.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Entering Asset Details after Acceptance -->
+        <div class="modal fade" id="assetDetailsModal" tabindex="-1" aria-labelledby="assetDetailsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="assetDetailsModalLabel">Enter Asset Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="assetDetailsForm">
+                            <div class="mb-3">
+                                <label for="assetStatus" class="form-label">Asset Status:</label>
+                                <input type="text" class="form-control" id="assetStatus" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="location" class="form-label">Location:</label>
+                                <input type="text" class="form-control" id="location" value="Main Warehouse" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="floor" class="form-label">Floor:</label>
+                                <input type="text" class="form-control" id="floor" value="Ground Floor" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="roomNumber" class="form-label">Room Number:</label>
+                                <input type="text" class="form-control" id="roomNumber" value="001" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="building" class="form-label">Building:</label>
+                                <input type="text" class="form-control" id="building" value="ABC Headquarters" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="issuedTo" class="form-label">Issued To:</label>
+                                <input type="text" class="form-control" id="issuedTo" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="dept" class="form-label">Dept:</label>
+                                <input type="text" class="form-control" id="dept" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="issuedOn" class="form-label">Issued On:</label>
+                                <input type="date" class="form-control" id="issuedOn" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="operator" class="form-label">Operator:</label>
+                                <input type="text" class="form-control" id="operator" value="" readonly>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Submit Details</button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -165,22 +178,19 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            // Check if credentials match
             currentUser = predefinedUsers.find(user => user.username === username && user.password === password);
 
             if (currentUser) {
-                // Show main content
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
 
-                // Set user-specific buttons and features
                 if (currentUser.role === "Movement Operation" || currentUser.role === "Purchase Operation") {
-                    document.getElementById('handoverButton').style.display = 'block'; // Show Request Handover Button
+                    document.getElementById('handoverButton').style.display = 'block';
                 }
                 if (currentUser.role === "Store Operation") {
-                    document.getElementById('newRequestButton').style.display = 'block'; // Show View Requests Button
+                    document.getElementById('newRequestButton').style.display = 'block';
                 }
-                // Render products list
+
                 renderProductList();
             } else {
                 document.getElementById('loginError').style.display = 'block';
@@ -197,20 +207,37 @@
         // Render Product List
         function renderProductList(filteredProducts = products) {
             const productList = document.getElementById('productList');
+            const noProducts = document.getElementById('noProducts');
             productList.innerHTML = '';
-            filteredProducts.forEach(product => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <strong>Asset No:</strong> ${product.assetNo} <br>
-                    <strong>Name:</strong> ${product.name} <br>
-                    <strong>Model:</strong> ${product.model} <br>
-                    <button class="btn btn-primary btn-sm mt-3" onclick="setHandoverRequest('${product.assetNo}')">Request Handover</button>
-                `;
-                productList.appendChild(li);
-            });
+            if (filteredProducts.length === 0) {
+                noProducts.style.display = 'block';
+            } else {
+                noProducts.style.display = 'none';
+                filteredProducts.forEach(product => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <strong>Asset No:</strong> ${product.assetNo} <br>
+                        <strong>Name:</strong> ${product.name} <br>
+                        <strong>Model:</strong> ${product.model} <br>
+                        <button class="btn btn-primary btn-sm mt-3" ${product.status === 'In Use' ? 'disabled' : ''} onclick="setHandoverRequest('${product.assetNo}')">Request Handover</button>
+                    `;
+                    productList.appendChild(li);
+                });
+            }
         }
 
-        // Send Handover Request (Movement Operation & Purchase Operation)
+        // Search products
+        function searchProducts() {
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            const filteredProducts = products.filter(product => 
+                product.assetNo.toLowerCase().includes(searchQuery) || 
+                product.name.toLowerCase().includes(searchQuery) ||
+                product.model.toLowerCase().includes(searchQuery)
+            );
+            renderProductList(filteredProducts);
+        }
+
+        // Send Handover Request
         function setHandoverRequest(assetNo) {
             if (currentUser.role !== 'Movement Operation' && currentUser.role !== 'Purchase Operation') {
                 alert('You do not have permission to send a handover request');
@@ -233,19 +260,24 @@
         document.getElementById('newRequestButton').addEventListener('click', function () {
             const handOverRequestList = document.getElementById('handoverRequestList');
             handOverRequestList.innerHTML = '';
-
             const pendingRequests = handOverRequests.filter(request => request.receiver === 'Store Operation' && request.status === 'Pending');
-            pendingRequests.forEach(request => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <strong>Asset No:</strong> ${request.assetNo} <br>
-                    <strong>Sender:</strong> ${request.sender} <br>
-                    <strong>Status:</strong> ${request.status} <br>
-                    <button class="btn btn-success btn-sm mt-2" onclick="acceptRequest('${request.assetNo}')">Accept</button>
-                    <button class="btn btn-danger btn-sm mt-2 ms-2" onclick="ignoreRequest('${request.assetNo}')">Ignore</button>
-                `;
-                handOverRequestList.appendChild(li);
-            });
+            
+            if (pendingRequests.length === 0) {
+                document.getElementById('noRequests').style.display = 'block';
+            } else {
+                document.getElementById('noRequests').style.display = 'none';
+                pendingRequests.forEach(request => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <strong>Asset No:</strong> ${request.assetNo} <br>
+                        <strong>Sender:</strong> ${request.sender} <br>
+                        <strong>Status:</strong> ${request.status} <br>
+                        <button class="btn btn-success btn-sm mt-2" onclick="acceptRequest('${request.assetNo}')">Accept</button>
+                        <button class="btn btn-danger btn-sm mt-2 ms-2" onclick="ignoreRequest('${request.assetNo}')">Ignore</button>
+                    `;
+                    handOverRequestList.appendChild(li);
+                });
+            }
         });
 
         // Accept Handover Request (Store Operation)
@@ -255,7 +287,10 @@
                 request.status = 'Received';
                 request.operator = currentUser.username;
                 localStorage.setItem('handOverRequests', JSON.stringify(handOverRequests));
-                alert('Handover request accepted');
+
+                // Show the modal for asset details entry
+                document.getElementById('operator').value = currentUser.username;
+                new bootstrap.Modal(document.getElementById('assetDetailsModal')).show();
             }
         }
 
@@ -269,33 +304,40 @@
             }
         }
 
-        // Search Products
-        function searchProducts() {
-            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
-            const filteredProducts = products.filter(product =>
-                product.assetNo.toLowerCase().includes(searchQuery) ||
-                product.name.toLowerCase().includes(searchQuery) ||
-                product.model.toLowerCase().includes(searchQuery)
-            );
-            renderProductList(filteredProducts);
-        }
-
-        // Handle Product Add
-        document.getElementById('productForm').addEventListener('submit', function (e) {
+        // Submit Asset Details
+        document.getElementById('assetDetailsForm').addEventListener('submit', function (e) {
             e.preventDefault();
+
+            const assetStatus = document.getElementById('assetStatus').value;
+            const location = document.getElementById('location').value;
+            const floor = document.getElementById('floor').value;
+            const roomNumber = document.getElementById('roomNumber').value;
+            const building = document.getElementById('building').value;
+            const issuedTo = document.getElementById('issuedTo').value;
+            const dept = document.getElementById('dept').value;
+            const issuedOn = document.getElementById('issuedOn').value;
+            const operator = document.getElementById('operator').value;
+
             const assetNo = document.getElementById('assetNo').value;
-            const name = document.getElementById('productName').value;
-            const model = document.getElementById('productModel').value;
-            const purchaseDate = document.getElementById('purchaseDate').value;
 
-            // Save new product
-            const newProduct = { assetNo, name, model, purchaseDate, status: "Waiting for Store Enrol" };
-            products.push(newProduct);
-            localStorage.setItem('products', JSON.stringify(products));
+            // Find the corresponding product
+            const product = products.find(p => p.assetNo === assetNo);
+            if (product) {
+                product.status = assetStatus;
+                product.location = location;
+                product.floor = floor;
+                product.roomNumber = roomNumber;
+                product.building = building;
+                product.issuedTo = issuedTo;
+                product.dept = dept;
+                product.issuedOn = issuedOn;
+                product.operator = operator;
 
-            alert('Product added successfully');
-            renderProductList(); // Re-render the product list
-            document.getElementById('addProductModal').querySelector('.btn-close').click();  // Close the modal
+                localStorage.setItem('products', JSON.stringify(products));
+
+                alert('Asset details updated successfully');
+                bootstrap.Modal.getInstance(document.getElementById('assetDetailsModal')).hide();
+            }
         });
     </script>
 </body>

@@ -180,7 +180,6 @@
                 if (currentUser.role === "Store Operation") {
                     document.getElementById('newRequestButton').style.display = 'block'; // Show View Requests Button
                 }
-
                 // Render products list
                 renderProductList();
             } else {
@@ -191,8 +190,6 @@
         // Handle logout
         document.getElementById('logoutBtn').addEventListener('click', function () {
             currentUser = null;
-            localStorage.removeItem('products');
-            localStorage.removeItem('handOverRequests');
             document.getElementById('loginSection').style.display = 'block';
             document.getElementById('mainContent').style.display = 'none';
         });
@@ -201,89 +198,57 @@
         function renderProductList(filteredProducts = products) {
             const productList = document.getElementById('productList');
             productList.innerHTML = '';
-
             filteredProducts.forEach(product => {
                 const li = document.createElement('li');
-                li.classList.add('list-group-item');
                 li.innerHTML = `
                     <strong>Asset No:</strong> ${product.assetNo} <br>
                     <strong>Name:</strong> ${product.name} <br>
                     <strong>Model:</strong> ${product.model} <br>
-                    <strong>Purchase Date:</strong> ${product.purchaseDate} <br>
-                    <strong>Status:</strong> ${product.status} <br>
+                    <button class="btn btn-primary btn-sm mt-3" onclick="setHandoverRequest('${product.assetNo}')">Request Handover</button>
                 `;
                 productList.appendChild(li);
             });
         }
 
-        // Search products with debounce
-        let debounceTimeout;
-        function searchProducts() {
-            clearTimeout(debounceTimeout);
-            debounceTimeout = setTimeout(() => {
-                const searchQuery = document.getElementById('searchInput').value.toLowerCase();
-                const filteredProducts = products.filter(product =>
-                    product.assetNo.toLowerCase().includes(searchQuery) ||
-                    product.name.toLowerCase().includes(searchQuery) ||
-                    product.model.toLowerCase().includes(searchQuery)
-                );
-                renderProductList(filteredProducts);
-            }, 300); // 300ms debounce delay
-        }
-
-        // Add Product Handler
-        document.getElementById('productForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const assetNo = document.getElementById('assetNo').value;
-            const name = document.getElementById('productName').value;
-            const model = document.getElementById('productModel').value;
-            const purchaseDate = document.getElementById('purchaseDate').value;
-            const status = document.getElementById('assetStatus').value;
-
-            // Prevent duplicates
-            const isDuplicate = products.some(product => product.assetNo === assetNo);
-            if (isDuplicate) {
-                alert('Asset Number already exists!');
+        // Send Handover Request (Movement Operation & Purchase Operation)
+        function setHandoverRequest(assetNo) {
+            if (currentUser.role !== 'Movement Operation' && currentUser.role !== 'Purchase Operation') {
+                alert('You do not have permission to send a handover request');
                 return;
             }
 
-            // Add new product
-            const newProduct = {
-                assetNo,
-                name,
-                model,
-                purchaseDate,
-                status
+            const request = {
+                assetNo: assetNo,
+                sender: currentUser.username,
+                receiver: 'Store Operation',
+                status: 'Pending'
             };
-            products.push(newProduct);
-            localStorage.setItem('products', JSON.stringify(products));
 
-            // Reset form and close modal
-            document.getElementById('productForm').reset();
-            document.querySelector('#addProductModal .btn-close').click();
-            renderProductList();
-        });
-
-        // Show handover requests (only for Store Operation role)
-        function renderHandOverRequests() {
-            const requestList = document.getElementById('handoverRequestList');
-            requestList.innerHTML = '';
-
-            handOverRequests.forEach(request => {
-                const li = document.createElement('li');
-                li.classList.add('list-group-item');
-                li.innerHTML = `
-                    <strong>Asset No:</strong> ${request.assetNo} <br>
-                    <strong>From:</strong> ${request.requester} <br>
-                    <strong>Status:</strong> ${request.status} <br>
-                    <button class="btn btn-success" onclick="acceptRequest('${request.assetNo}')">Accept</button>
-                    <button class="btn btn-danger" onclick="ignoreRequest('${request.assetNo}')">Ignore</button>
-                `;
-                requestList.appendChild(li);
-            });
+            handOverRequests.push(request);
+            localStorage.setItem('handOverRequests', JSON.stringify(handOverRequests));
+            alert('Handover request sent to Store Operation');
         }
 
-        // Accept a handover request
+        // View New Requests (Store Operation)
+        document.getElementById('newRequestButton').addEventListener('click', function () {
+            const handOverRequestList = document.getElementById('handoverRequestList');
+            handOverRequestList.innerHTML = '';
+
+            const pendingRequests = handOverRequests.filter(request => request.receiver === 'Store Operation' && request.status === 'Pending');
+            pendingRequests.forEach(request => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <strong>Asset No:</strong> ${request.assetNo} <br>
+                    <strong>Sender:</strong> ${request.sender} <br>
+                    <strong>Status:</strong> ${request.status} <br>
+                    <button class="btn btn-success btn-sm mt-2" onclick="acceptRequest('${request.assetNo}')">Accept</button>
+                    <button class="btn btn-danger btn-sm mt-2 ms-2" onclick="ignoreRequest('${request.assetNo}')">Ignore</button>
+                `;
+                handOverRequestList.appendChild(li);
+            });
+        });
+
+        // Accept Handover Request (Store Operation)
         function acceptRequest(assetNo) {
             const request = handOverRequests.find(req => req.assetNo === assetNo);
             if (request) {
@@ -291,25 +256,47 @@
                 request.operator = currentUser.username;
                 localStorage.setItem('handOverRequests', JSON.stringify(handOverRequests));
                 alert('Handover request accepted');
-                renderHandOverRequests(); // Refresh the request list
             }
         }
 
-        // Ignore a handover request
+        // Ignore Handover Request (Store Operation)
         function ignoreRequest(assetNo) {
             const requestIndex = handOverRequests.findIndex(req => req.assetNo === assetNo);
             if (requestIndex > -1) {
                 handOverRequests.splice(requestIndex, 1);
                 localStorage.setItem('handOverRequests', JSON.stringify(handOverRequests));
                 alert('Handover request ignored');
-                renderHandOverRequests(); // Refresh the request list
             }
         }
 
-        // Initialize page with any saved data
-        if (currentUser) {
-            renderProductList();
+        // Search Products
+        function searchProducts() {
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            const filteredProducts = products.filter(product =>
+                product.assetNo.toLowerCase().includes(searchQuery) ||
+                product.name.toLowerCase().includes(searchQuery) ||
+                product.model.toLowerCase().includes(searchQuery)
+            );
+            renderProductList(filteredProducts);
         }
+
+        // Handle Product Add
+        document.getElementById('productForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const assetNo = document.getElementById('assetNo').value;
+            const name = document.getElementById('productName').value;
+            const model = document.getElementById('productModel').value;
+            const purchaseDate = document.getElementById('purchaseDate').value;
+
+            // Save new product
+            const newProduct = { assetNo, name, model, purchaseDate, status: "Waiting for Store Enrol" };
+            products.push(newProduct);
+            localStorage.setItem('products', JSON.stringify(products));
+
+            alert('Product added successfully');
+            renderProductList(); // Re-render the product list
+            document.getElementById('addProductModal').querySelector('.btn-close').click();  // Close the modal
+        });
     </script>
 </body>
 </html>

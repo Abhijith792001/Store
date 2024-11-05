@@ -206,7 +206,7 @@
             document.getElementById('mainContent').style.display = 'none';
         });
 
-        // Render Product List
+      // Render Product List
         function renderProductList(filteredProducts = products) {
             const productList = document.getElementById('productList');
             const noProducts = document.getElementById('noProducts');
@@ -287,17 +287,39 @@
         function acceptRequest(assetNo) {
             const request = handOverRequests.find(req => req.assetNo === assetNo);
             if (request) {
+                // Update request status to "Received"
                 request.status = 'Received';
                 request.operator = currentUser.username;
+
+                // Find the corresponding product
+                const product = products.find(p => p.assetNo === assetNo);
+                if (product) {
+                    // Update the product status (optional: based on business logic)
+                    product.status = 'In Store';  // Or any other status you want to set
+                    product.operator = currentUser.username;  // You can store the operator if needed
+                }
+
+                // Save the updated arrays to localStorage
+                localStorage.setItem('handOverRequests', JSON.stringify(handOverRequests));
+                localStorage.setItem('products', JSON.stringify(products));
+
+                alert('Handover request accepted successfully');
+
+                // Remove the request from the list
+                handOverRequests = handOverRequests.filter(req => req.assetNo !== assetNo);
                 localStorage.setItem('handOverRequests', JSON.stringify(handOverRequests));
 
-                // Show the modal for asset details entry
-                document.getElementById('operator').value = currentUser.username;
-                new bootstrap.Modal(document.getElementById('assetDetailsModal')).show();
+                // Re-render the product list and handover requests
+                renderProductList();
+                renderHandoverRequests();
+                
+                // Close the modal after success
+                bootstrap.Modal.getInstance(document.getElementById('handoverRequestModal')).hide();
             }
         }
 
-            function renderHandoverRequests() {
+       // Render Handover Requests
+        function renderHandoverRequests() {
             const handOverRequestList = document.getElementById('handoverRequestList');
             const noRequests = document.getElementById('noRequests');
             handOverRequestList.innerHTML = '';
@@ -322,18 +344,25 @@
             }
         }
 
-        // Ignore Handover Request (Store Operation)
-        function ignoreRequest(assetNo) {
-            const requestIndex = handOverRequests.findIndex(req => req.assetNo === assetNo);
-            if (requestIndex > -1) {
-                handOverRequests.splice(requestIndex, 1);
-                localStorage.setItem('handOverRequests', JSON.stringify(handOverRequests));
-                alert('Handover request ignored');
-                
-                // Re-render the handover request list after ignoring
-                renderHandoverRequests();
-            }
-        }
+
+
+            // Ignore Handover Request (Store Operation)
+            function ignoreRequest(assetNo) {
+    // Find the index of the request to be removed
+    const requestIndex = handOverRequests.findIndex(req => req.assetNo === assetNo);
+    if (requestIndex > -1) {
+        // Remove the request from the array
+        handOverRequests.splice(requestIndex, 1);
+        localStorage.setItem('handOverRequests', JSON.stringify(handOverRequests));
+        alert('Handover request ignored');
+
+        // Re-render the handover request list after ignoring
+        renderHandoverRequests();
+        
+        // Close the modal after ignoring
+        bootstrap.Modal.getInstance(document.getElementById('handoverRequestModal')).hide();
+    }
+}
 
         // Submit Asset Details
         document.getElementById('assetDetailsForm').addEventListener('submit', function (e) {

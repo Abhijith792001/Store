@@ -79,9 +79,31 @@
                             <label for="purchaseDate" class="form-label">Purchase Date:</label>
                             <input type="text" class="form-control" id="purchaseDate" value="" readonly>
                         </div>
+                        <!-- Hidden Asset Status -->
                         <div class="mb-3">
                             <label for="assetStatus" class="form-label">Asset Status:</label>
-                            <select class="form-select" id="assetStatus" required>
+                            <input type="text" class="form-control" id="assetStatus" value="Waiting for Store Enrol" readonly>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Add Product</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Modal for Edit Product Status -->
+    <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProductModalLabel">Edit Product Status</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editProductForm">
+                        <div class="mb-3">
+                            <label for="editAssetStatus" class="form-label">Asset Status:</label>
+                            <select class="form-select" id="editAssetStatus" required>
                                 <option value="In Use">In Use</option>
                                 <option value="In Store">In Store</option>
                                 <option value="Scrapped">Scrapped</option>
@@ -91,7 +113,35 @@
                                 <option value="Missing">Missing</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Add Product</button>
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location:</label>
+                            <input type="text" class="form-control" id="location" value="Main Warehouse" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="floor" class="form-label">Floor:</label>
+                            <input type="text" class="form-control" id="floor" value="Ground Floor" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="room" class="form-label">Room Number:</label>
+                            <input type="text" class="form-control" id="room" value="001" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="building" class="form-label">Building:</label>
+                            <input type="text" class="form-control" id="building" value="ABC Headquarters" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="issuedTo" class="form-label">Issued To:</label>
+                            <input type="text" class="form-control" id="issuedTo" value="Rahul" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="department" class="form-label">Department:</label>
+                            <input type="text" class="form-control" id="department" value="IT Department" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="issuedOn" class="form-label">Issued On:</label>
+                            <input type="text" class="form-control" id="issuedOn" value="01/11/2023" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Save Changes</button>
                     </form>
                 </div>
             </div>
@@ -103,6 +153,7 @@
 
     <script>
         let products = [];  // Array to store product objects
+        let currentProductId = null;
 
         // Automatically populate the purchase date field when the page loads
         document.getElementById('purchaseDate').value = new Date().toLocaleDateString();
@@ -116,7 +167,7 @@
             const productName = document.getElementById('productName').value;
             const productModel = document.getElementById('productModel').value;
             const purchaseDate = document.getElementById('purchaseDate').value;
-            const assetStatus = document.getElementById('assetStatus').value;
+            const assetStatus = "Waiting for Store Enrol";  // Default status
 
             // Create product object
             const newProduct = {
@@ -126,7 +177,14 @@
                 model: productModel,
                 purchaseDate: purchaseDate,
                 status: assetStatus,
-                history: [`Product added: ${productName} (${productModel}) on ${purchaseDate}`]
+                history: [`Product added: ${productName} (${productModel}) on ${purchaseDate}`],
+                location: "Main Warehouse",
+                floor: "Ground Floor",
+                room: "001",
+                building: "ABC Headquarters",
+                issuedTo: "Rahul",
+                department: "IT Department",
+                issuedOn: "01/11/2023"
             };
 
             // Add the new product to the products array
@@ -137,7 +195,6 @@
             document.getElementById('productName').value = '';
             document.getElementById('productModel').value = '';
             document.getElementById('purchaseDate').value = new Date().toLocaleDateString();
-            document.getElementById('assetStatus').value = 'In Use';
 
             // Close the modal after adding the product
             const modal = new bootstrap.Modal(document.getElementById('addProductModal'));
@@ -163,8 +220,7 @@
                             Status: <span class="badge bg-success">${product.status}</span>
                         </div>
                         <div>
-                            <button class="btn btn-warning btn-sm me-2" onclick="changeStatus(${product.id})">Change Status</button>
-                            <button class="btn btn-info btn-sm" onclick="changePrice(${product.id})">Change Price</button>
+                            <button class="btn btn-warning btn-sm me-2" onclick="editProduct(${product.id})">Edit Status</button>
                         </div>
                     </div>
                     <div class="history mt-3">
@@ -178,25 +234,65 @@
             });
         }
 
-        // Change product status
-        function changeStatus(productId) {
+        // Edit product status
+        function editProduct(productId) {
             const product = products.find(p => p.id === productId);
-            const currentStatus = product.status;
 
-            // Toggle between available and out of stock
-            const newStatus = prompt("Enter new status:", currentStatus);
-            if (newStatus) {
-                // Add a new entry to the history
-                const statusChangeHistory = `Status changed from ${currentStatus} to ${newStatus} on ${new Date().toLocaleString()}`;
-                product.history.push(statusChangeHistory);
+            // Set current product ID for reference in the edit form
+            currentProductId = productId;
 
-                // Update the product status
-                product.status = newStatus;
+            // Populate the edit form fields with the existing product data
+            document.getElementById('editAssetStatus').value = product.status;
+            document.getElementById('location').value = product.location;
+            document.getElementById('floor').value = product.floor;
+            document.getElementById('room').value = product.room;
+            document.getElementById('building').value = product.building;
+            document.getElementById('issuedTo').value = product.issuedTo;
+            document.getElementById('department').value = product.department;
+            document.getElementById('issuedOn').value = product.issuedOn;
 
-                // Re-render products
-                renderProducts();
-            }
+            // Show the edit modal
+            const modal = new bootstrap.Modal(document.getElementById('editProductModal'));
+            modal.show();
         }
+
+        // Save changes to product status
+        document.getElementById('editProductForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Get updated values from the form
+            const newStatus = document.getElementById('editAssetStatus').value;
+            const location = document.getElementById('location').value;
+            const floor = document.getElementById('floor').value;
+            const room = document.getElementById('room').value;
+            const building = document.getElementById('building').value;
+            const issuedTo = document.getElementById('issuedTo').value;
+            const department = document.getElementById('department').value;
+            const issuedOn = document.getElementById('issuedOn').value;
+
+            // Find the product to update
+            const product = products.find(p => p.id === currentProductId);
+
+            // Update the product's status and other fields
+            product.status = newStatus;
+            product.location = location;
+            product.floor = floor;
+            product.room = room;
+            product.building = building;
+            product.issuedTo = issuedTo;
+            product.department = department;
+            product.issuedOn = issuedOn;
+
+            // Add history for the status update
+            product.history.push(`Status changed to ${newStatus} on ${new Date().toLocaleString()}`);
+
+            // Close the edit modal
+            const modal = new bootstrap.Modal(document.getElementById('editProductModal'));
+            modal.hide();
+
+            // Re-render the product list
+            renderProducts();
+        });
 
         // Search products
         function searchProducts() {
@@ -226,8 +322,7 @@
                             Status: <span class="badge bg-success">${product.status}</span>
                         </div>
                         <div>
-                            <button class="btn btn-warning btn-sm me-2" onclick="changeStatus(${product.id})">Change Status</button>
-                            <button class="btn btn-info btn-sm" onclick="changePrice(${product.id})">Change Price</button>
+                            <button class="btn btn-warning btn-sm me-2" onclick="editProduct(${product.id})">Edit Status</button>
                         </div>
                     </div>
                     <div class="history mt-3">

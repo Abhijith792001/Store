@@ -1,0 +1,63 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 900px;
+    margin-top: 30px;
+}
+
+h1, h2 {
+    font-weight: bold;
+}
+
+table th, table td {
+    text-align: center;
+}
+
+#noProducts, #noRequests {
+    font-size: 1.2em;
+    color: #6c757d;
+}
+
+.modal-dialog {
+    max-width: 600px;
+}
+
+.modal-body form input {
+    margin-bottom: 10px;
+}
+
+/* Custom Styling for Filters */
+.filter-section {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+.filter-section > div {
+    width: 100%;
+    max-width: 300px;
+}
+.filter-section input[type="range"] {
+    width: 100%;
+}
+.filter-section label {
+    font-weight: bold;
+}
+.filter-section select, .filter-section input {
+    width: 100%;
+}
+
+.table th, .table td {
+    text-align: center;
+}
+
+.btn-export {
+    float: right;
+}
+
+#costValue {
+    font-weight: bold;
+}

@@ -3,362 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asset Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .container {
-            max-width: 900px;
-            margin-top: 30px;
-        }
-        .history {
-            font-size: 0.9em;
-            color: #6c757d;
-        }
-        #noProducts, #noRequests {
-            font-size: 1.2em;
-            color: #6c757d;
-        }
-        table th, table td {
-            text-align: center;
-        }
-    </style>
+    <title>Manage Assets</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="style.css" rel="stylesheet">
 </head>
 <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Asset Management</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="managementAsset.html">Add Management</a>
+                    </li>
+                    <li class="nav-item" id="logoutLink" style="display:none;">
+                        <a class="nav-link" href="javascript:void(0)" onclick="logout()">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <h1 class="text-center mb-4">Asset Management</h1>
 
-        <!-- Login Section -->
-        <div id="loginSection">
-            <h3>Login</h3>
-            <form id="loginForm">
-                <div class="mb-3">
-                    <label for="username" class="form-label">Username</label>
-                    <input type="text" id="username" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label for="password" class="form-label">Password</label>
-                    <input type="password" id="password" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Login</button>
-            </form>
-            <div id="loginError" class="text-danger mt-3" style="display:none;">Invalid credentials!</div>
+        <!-- Search & Filter Section -->
+        <div class="d-flex justify-content-between">
+            <input type="text" id="searchInput" class="form-control w-50" placeholder="Search for assets..." onkeyup="filterProducts()">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">Filter Products</button>
         </div>
 
-        <!-- Main Content for Logged-In Users -->
-        <div id="mainContent" style="display:none;">
-            <div class="d-flex justify-content-between">
-                <h4>Manage Assets</h4>
-                <button id="logoutBtn" class="btn btn-danger">Logout</button>
-            </div>
-            <div id="addProductButton" class="text-center mb-4" style="display:none;">
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">Add New Product</button>
-            </div>
+        <!-- Export CSV Button -->
+        <button class="btn btn-success mt-3 btn-export" onclick="exportCSV()">Export CSV</button>
 
-            <!-- Search Bar -->
-            <div class="mb-4 d-flex">
-                <input type="text" id="searchInput" class="form-control" placeholder="Search products by Asset No, Name, or Model" oninput="searchProducts()">
-                <button id="searchBtn" class="btn btn-secondary ms-2" onclick="searchProducts()">Search</button>
-            </div>
+        <!-- Product List Table -->
+        <h2 class="h4 mt-4">Products</h2>
+        <table id="productTable" class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Asset No</th>
+                    <th>Product Model</th>
+                    <th>Product Name</th>
+                    <th>Asset Status</th>
+                    <th>Cost</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="productList"></tbody>
+        </table>
 
-            <!-- Button to View New Requests (Role 3 only) -->
-            <div id="newRequestButton" class="text-center mb-4" style="display:none;">
-                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#handoverRequestModal">View New Requests</button>
-            </div>
+        <div id="noProducts" style="display:none;">No products available.</div>
+    </div>
 
-            <!-- Product List Table -->
-            <h2 class="h4">Products</h2>
-            <table id="productTable" class="table table-bordered table-striped">
-                <thead>
-                    <tr>
-                        <th>Select</th>
-                        <th>Asset No</th>
-                        <th>Product Model</th>
-                        <th>Product Name</th>
-                        <th>Asset Status</th>
-                        <th>Cost</th>
-                        <th>Handover Request</th>
-                    </tr>
-                </thead>
-                <tbody id="productList"></tbody>
-            </table>
-            <div id="noProducts" style="display:none;">No products available.</div>
-        </div>
-
-        <!-- Modal for Adding New Product -->
-        <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="addProductModalLabel">Add New Product</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="addProductForm">
-                            <div class="mb-3">
-                                <label for="productName" class="form-label">Product Name</label>
-                                <input type="text" id="productName" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="assetNo" class="form-label">Asset No</label>
-                                <input type="text" id="assetNo" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="serialNo" class="form-label">Serial No</label>
-                                <input type="text" id="serialNo" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="productModel" class="form-label">Product Model</label>
-                                <input type="text" id="productModel" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="manufacturer" class="form-label">Manufacturer</label>
-                                <input type="text" id="manufacturer" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="productCategory" class="form-label">Product Category</label>
-                                <input type="text" id="productCategory" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="poNo" class="form-label">PO No</label>
-                                <input type="text" id="poNo" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="invoiceNo" class="form-label">Invoice No</label>
-                                <input type="text" id="invoiceNo" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="vendorName" class="form-label">Vendor Name</label>
-                                <input type="text" id="vendorName" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="cost" class="form-label">Cost</label>
-                                <input type="number" id="cost" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="deliveryDate" class="form-label">Delivery Date</label>
-                                <input type="date" id="deliveryDate" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="warranty" class="form-label">Warranty</label>
-                                <input type="text" id="warranty" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="submittedBy" class="form-label">Submitted By</label>
-                                <input type="text" id="submittedBy" class="form-control" value="" disabled>
-                            </div>
-                            <div class="mb-3">
-                                <label for="status" class="form-label">Asset Status</label>
-                                <select id="status" class="form-select" required>
-                                    <option value="Waiting for Store Enrol">Waiting for Store Enrol</option>
-                                    <option value="In Use">In Use</option>
-                                    <option value="In Store">In Store</option>
-                                    <option value="Scrapped">Scrapped</option>
-                                    <option value="Non-functional">Non-functional</option>
-                                    <option value="Transfer">Transfer</option>
-                                    <option value="Missing">Missing</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Add Product</button>
-                            <div id="addProductError" class="text-danger mt-2" style="display:none;">Please fill out all fields correctly.</div>
-                        </form>
+    <!-- Modal for Filters -->
+    <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="filterModalLabel">Filter Products</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="filter-section">
+                        <div>
+                            <label for="statusFilter">Filter by Status</label>
+                            <select id="statusFilter" class="form-control" onchange="filterProducts()">
+                                <option value="">All Statuses</option>
+                                <option value="Available">Available</option>
+                                <option value="In Use">In Use</option>
+                                <option value="In Maintenance">In Maintenance</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="modelFilter">Filter by Model</label>
+                            <select id="modelFilter" class="form-control" onchange="filterProducts()">
+                                <option value="">All Models</option>
+                                <option value="Model A">Model A</option>
+                                <option value="Model B">Model B</option>
+                                <option value="Model C">Model C</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="costRange">Filter by Cost</label>
+                            <input type="range" id="costRange" class="form-range" min="0" max="100000" step="1000" value="50000" onchange="filterProducts()">
+                            <span id="costValue">₹50,000</span>
+                        </div>
+                        <div>
+                            <label for="dateFilter">Filter by Date</label>
+                            <input type="date" id="dateFilter" class="form-control" onchange="filterProducts()">
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Modal for Handover Requests -->
-        <div class="modal fade" id="handoverRequestModal" tabindex="-1" aria-labelledby="handoverRequestModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="handoverRequestModalLabel">Handover Requests</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <ul id="handoverRequestList">
-                            <!-- Dynamic request list -->
-                        </ul>
-                        <div id="noRequests" style="display:none;">No handover requests available.</div>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Mock predefined users
-        const predefinedUsers = [
-            { username: 'admin', password: 'admin123', role: 'Super Admin' },
-            { username: 'storeUser', password: 'store123', role: 'Store Operation' },
-            { username: 'purchaseUser', password: 'purchase123', role: 'Purchase Operation' }
-        ];
+    <!-- Bootstrap JS and Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
-        // Initialize the products and handover requests
-        let products = JSON.parse(localStorage.getItem('products')) || [];
-        let handOverRequests = JSON.parse(localStorage.getItem('handOverRequests')) || [];
-        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
-
-        // Handle login
-        document.getElementById('loginForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            const user = predefinedUsers.find(u => u.username === username && u.password === password);
-            if (user) {
-                currentUser = user;
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
-                loadUserRoleFeatures(currentUser.role);
-                renderProductList();
-            } else {
-                document.getElementById('loginError').style.display = 'block';
-            }
-        });
-
-        // Handle logout
-        document.getElementById('logoutBtn').addEventListener('click', function () {
-            currentUser = null;
-            localStorage.removeItem('currentUser');
-            document.getElementById('loginSection').style.display = 'block';
-            document.getElementById('mainContent').style.display = 'none';
-            localStorage.clear();
-        });
-
-        // Load user role features
-        function loadUserRoleFeatures(role) {
-            if (role === 'Super Admin' || role === 'Purchase Operation') {
-                document.getElementById('addProductButton').style.display = 'block';
-            }
-
-            if (role === 'Store Operation' || role === 'Super Admin') {
-                document.getElementById('newRequestButton').style.display = 'block';
-            }
-        }
-
-        // Render Product List in Table Format
-        function renderProductList() {
-            const productTableBody = document.getElementById('productList');
-            productTableBody.innerHTML = '';
-
-            if (products.length === 0) {
-                document.getElementById('noProducts').style.display = 'block';
-            } else {
-                document.getElementById('noProducts').style.display = 'none';
-                products.forEach(product => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><input type="checkbox"></td>
-                        <td>${product.assetNo}</td>
-                        <td>${product.productModel}</td>
-                        <td>${product.productName}</td>
-                        <td>${product.status}</td>
-                        <td>₹${product.cost}</td>
-                        <td><button class="btn btn-warning btn-sm" style="display:${product.status === 'In Store' ? 'inline-block' : 'none'}" onclick="initiateHandoverRequest(${product.id})">Initiate Handover</button></td>
-                    `;
-                    productTableBody.appendChild(row);
-                });
-            }
-        }
-
-        // Add Product Form Submit
-        document.getElementById('addProductForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            const productName = document.getElementById('productName').value.trim();
-            const assetNo = document.getElementById('assetNo').value.trim();
-            const serialNo = document.getElementById('serialNo').value.trim();
-            const productModel = document.getElementById('productModel').value.trim();
-            const manufacturer = document.getElementById('manufacturer').value.trim();
-            const productCategory = document.getElementById('productCategory').value.trim();
-            const poNo = document.getElementById('poNo').value.trim();
-            const invoiceNo = document.getElementById('invoiceNo').value.trim();
-            const vendorName = document.getElementById('vendorName').value.trim();
-            const cost = document.getElementById('cost').value.trim();
-            const deliveryDate = document.getElementById('deliveryDate').value;
-            const warranty = document.getElementById('warranty').value.trim();
-            const submittedBy = currentUser.username;
-            const status = document.getElementById('status').value;
-
-            if (productName && assetNo && serialNo && productModel && manufacturer && productCategory && poNo && invoiceNo && vendorName && cost && deliveryDate && warranty) {
-                const newProduct = {
-                    id: Date.now(),
-                    productName,
-                    assetNo,
-                    serialNo,
-                    productModel,
-                    manufacturer,
-                    productCategory,
-                    poNo,
-                    invoiceNo,
-                    vendorName,
-                    cost,
-                    deliveryDate,
-                    warranty,
-                    submittedBy,
-                    status
-                };
-
-                products.push(newProduct);
-                localStorage.setItem('products', JSON.stringify(products));
-                alert('Product added successfully!');
-                document.getElementById('addProductModal').querySelector('.btn-close').click();
-                renderProductList();
-            } else {
-                document.getElementById('addProductError').style.display = 'block';
-            }
-        });
-
-        // Initiate Handover Request
-        function initiateHandoverRequest(productId) {
-            const product = products.find(p => p.id === productId);
-            if (product) {
-                handOverRequests.push(product);
-                localStorage.setItem('handOverRequests', JSON.stringify(handOverRequests));
-                alert('Handover request initiated.');
-            }
-        }
-
-        // Search Products
-        function searchProducts() {
-            const searchValue = document.getElementById('searchInput').value.toLowerCase();
-            const filteredProducts = products.filter(product =>
-                product.assetNo.toLowerCase().includes(searchValue) ||
-                product.productName.toLowerCase().includes(searchValue) ||
-                product.productModel.toLowerCase().includes(searchValue)
-            );
-            renderFilteredProductList(filteredProducts);
-        }
-
-        // Render Filtered Product List
-        function renderFilteredProductList(filteredProducts) {
-            const productTableBody = document.getElementById('productList');
-            productTableBody.innerHTML = '';
-
-            if (filteredProducts.length === 0) {
-                document.getElementById('noProducts').style.display = 'block';
-            } else {
-                document.getElementById('noProducts').style.display = 'none';
-                filteredProducts.forEach(product => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><input type="checkbox"></td>
-                        <td>${product.assetNo}</td>
-                        <td>${product.productModel}</td>
-                        <td>${product.productName}</td>
-                        <td>${product.status}</td>
-                        <td>₹${product.cost}</td>
-                        <td><button class="btn btn-warning btn-sm" style="display:${product.status === 'In Store' ? 'inline-block' : 'none'}" onclick="initiateHandoverRequest(${product.id})">Initiate Handover</button></td>
-                    `;
-                    productTableBody.appendChild(row);
-                });
-            }
-        }
-    </script>
+    <!-- Include your custom JavaScript -->
+    <script src="script.js"></script>
 </body>
 </html>

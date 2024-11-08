@@ -5,7 +5,7 @@ const predefinedUsers = [
     { username: 'purchaseUser', password: 'purchase123', role: 'Purchase Operation' }
 ];
 
-// Initialize the products and handover requests
+// Initialize the products, vendors, locations, and current user
 let products = JSON.parse(localStorage.getItem('products')) || [];
 let filteredProducts = [...products];
 let vendors = JSON.parse(localStorage.getItem('vendors')) || [];
@@ -83,16 +83,16 @@ function applyFilters() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const status = document.getElementById('statusFilter').value;
     const model = document.getElementById('modelFilter').value;
-    const costRange = parseInt(document.getElementById('costRange').value);
     const date = document.getElementById('dateFilter').value;
 
     filteredProducts = products.filter(product => {
-        const matchesSearch = product.productName.toLowerCase().includes(searchTerm) || product.productModel.toLowerCase().includes(searchTerm) || product.assetNo.toLowerCase().includes(searchTerm);
+        const matchesSearch = product.productName.toLowerCase().includes(searchTerm) || 
+                              product.productModel.toLowerCase().includes(searchTerm) || 
+                              product.assetNo.toLowerCase().includes(searchTerm);
         const matchesStatus = !status || product.status === status;
         const matchesModel = !model || product.productModel === model;
-        const matchesCost = product.cost <= costRange;
         const matchesDate = !date || product.dateAdded === date;
-        return matchesSearch && matchesStatus && matchesModel && matchesCost && matchesDate;
+        return matchesSearch && matchesStatus && matchesModel && matchesDate;
     });
 
     renderProductList();
@@ -102,7 +102,7 @@ function applyFilters() {
 }
 
 // Update cost range display value
-document.getElementById('costRange').addEventListener('input', function () {
+document.getElementById('costRange')?.addEventListener('input', function () {
     document.getElementById('costValue').textContent = '₹' + this.value;
 });
 

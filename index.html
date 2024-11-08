@@ -238,24 +238,33 @@
         function viewProduct(productId) {
             const product = products.find(p => p.id === productId);
             if (product) {
+                // Display basic product details
                 document.getElementById('productDetails').innerHTML = `
+                    <strong>Asset No:</strong> ${product.assetNo}<br>
                     <strong>Name:</strong> ${product.name}<br>
                     <strong>Model:</strong> ${product.model}<br>
-                    <strong>Asset No:</strong> ${product.assetNo}<br>
                     <strong>Status:</strong> ${product.status}<br>
-                    <strong>Location:</strong> ${product.location || 'Not specified'}<br>
-                    <strong>Issued To:</strong> ${product.issuedTo || 'Not specified'}<br>
-                    <strong>Department:</strong> ${product.dept || 'Not specified'}<br>
-                    <strong>Issued On:</strong> ${product.issuedOn || 'Not specified'}
                 `;
                 
                 // Only Store and Admin can verify
                 if (currentUser.role === "Store Operation" || currentUser.role === "Super Admin") {
                     document.getElementById('verifyButton').style.display = 'block';
                     document.getElementById('verifyBtn').onclick = function () {
+                        // Update product status and add asset management details
                         product.status = 'In Store';
+                        product.location = 'Main Warehouse';
+                        product.floor = 'Ground Floor';
+                        product.roomNumber = '001';
+                        product.building = 'ABC Headquarters';
+                        product.issuedTo = 'Rahul';
+                        product.dept = 'IT Department';
+                        product.issuedOn = '01/11/2023';
+                        
+                        // Save updated product and send handover request
                         saveProducts();
-                        alert('Product status changed to "In Store"');
+                        sendHandoverRequest(product);
+
+                        alert('Product verified and status updated.');
                         renderProductList();
                         document.getElementById('viewProductModal').querySelector('.btn-close').click();
                     };
@@ -335,6 +344,12 @@
                     productList.appendChild(li);
                 });
             }
+        }
+
+        // Send handover request to store
+        function sendHandoverRequest(product) {
+            handOverRequests.push(product);
+            saveHandOverRequests();
         }
     </script>
 </body>

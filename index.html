@@ -22,7 +22,7 @@
                         <a class="nav-link" href="index.html">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="managementAsset.html">Add Management</a>
+                        <a class="nav-link active" href="addManagement.html">Add Management</a>
                     </li>
                     <li class="nav-item" id="logoutLink" style="display:none;">
                         <a class="nav-link" href="javascript:void(0)" onclick="logout()">Logout</a>
@@ -39,6 +39,11 @@
         <div class="d-flex justify-content-between">
             <input type="text" id="searchInput" class="form-control w-50" placeholder="Search for assets..." onkeyup="filterProducts()">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">Filter Products</button>
+        </div>
+
+        <!-- Filter Applied Message -->
+        <div id="filterMessage" class="alert alert-success mt-3" style="display: none;">
+            <strong>Filter applied!</strong>
         </div>
 
         <!-- Export CSV Button -->
@@ -76,7 +81,7 @@
                     <div class="filter-section">
                         <div>
                             <label for="statusFilter">Filter by Status</label>
-                            <select id="statusFilter" class="form-control" onchange="filterProducts()">
+                            <select id="statusFilter" class="form-control">
                                 <option value="">All Statuses</option>
                                 <option value="Available">Available</option>
                                 <option value="In Use">In Use</option>
@@ -85,7 +90,7 @@
                         </div>
                         <div>
                             <label for="modelFilter">Filter by Model</label>
-                            <select id="modelFilter" class="form-control" onchange="filterProducts()">
+                            <select id="modelFilter" class="form-control">
                                 <option value="">All Models</option>
                                 <option value="Model A">Model A</option>
                                 <option value="Model B">Model B</option>
@@ -94,17 +99,18 @@
                         </div>
                         <div>
                             <label for="costRange">Filter by Cost</label>
-                            <input type="range" id="costRange" class="form-range" min="0" max="100000" step="1000" value="50000" onchange="filterProducts()">
+                            <input type="range" id="costRange" class="form-range" min="0" max="100000" step="1000" value="50000">
                             <span id="costValue">₹50,000</span>
                         </div>
                         <div>
                             <label for="dateFilter">Filter by Date</label>
-                            <input type="date" id="dateFilter" class="form-control" onchange="filterProducts()">
+                            <input type="date" id="dateFilter" class="form-control">
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
                 </div>
             </div>
         </div>

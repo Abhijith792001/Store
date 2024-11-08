@@ -8,6 +8,8 @@ const predefinedUsers = [
 // Initialize the products and handover requests
 let products = JSON.parse(localStorage.getItem('products')) || [];
 let filteredProducts = [...products];
+let vendors = JSON.parse(localStorage.getItem('vendors')) || [];
+let locations = JSON.parse(localStorage.getItem('locations')) || [];
 let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
 // Handle login
@@ -76,17 +78,8 @@ function viewProductDetails(productId) {
     }
 }
 
-// Initiate Handover Request
-function initiateHandoverRequest(productId) {
-    const product = products.find(p => p.id === productId);
-    if (product) {
-        document.getElementById('operator').value = currentUser.username;
-        document.getElementById('handoverRequestModal').querySelector('.btn-close').click();
-    }
-}
-
-// Handle Filter
-function filterProducts() {
+// Apply Filters from the Filter Modal
+function applyFilters() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const status = document.getElementById('statusFilter').value;
     const model = document.getElementById('modelFilter').value;
@@ -103,13 +96,21 @@ function filterProducts() {
     });
 
     renderProductList();
+    document.getElementById('filterMessage').style.display = 'block'; // Show "Filter applied" message
+    setTimeout(() => document.getElementById('filterMessage').style.display = 'none', 3000); // Hide message after 3 seconds
+    document.getElementById('filterModal').querySelector('.btn-close').click(); // Close the filter modal
 }
+
+// Update cost range display value
+document.getElementById('costRange').addEventListener('input', function () {
+    document.getElementById('costValue').textContent = '₹' + this.value;
+});
 
 // Export filtered products to CSV
 function exportCSV() {
     const csvHeader = ['Select', 'Asset No', 'Product Model', 'Product Name', 'Asset Status', 'Cost'];
     const csvRows = [];
-    
+
     filteredProducts.forEach(product => {
         const row = [
             '', // Select column (checkbox)
@@ -121,7 +122,7 @@ function exportCSV() {
         ];
         csvRows.push(row.join(','));
     });
-    
+
     const csvContent = [csvHeader.join(','), ...csvRows].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -130,4 +131,65 @@ function exportCSV() {
     link.click();
 }
 
+// Add Product Form Submission
+document.getElementById('addProductForm')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    
+    const product = {
+        id: Date.now(), // Unique ID based on timestamp
+        assetNo: 'A' + Date.now(), // Generate a unique asset number
+        productModel: document.getElementById('productModel').value,
+        manufacturer: document.getElementById('manufacturer').value,
+        productCategory: document.getElementById('productCategory').value,
+        poNumber: document.getElementById('poNumber').value,
+        invoiceNumber: document.getElementById('invoiceNumber').value,
+        vendorName: document.getElementById('vendorName').value,
+        cost: parseInt(document.getElementById('cost').value),
+        deliveryDate: document.getElementById('deliveryDate').value,
+        warranty: document.getElementById('warranty').value,
+        submittedBy: currentUser.username,
+        assetStatus: 'Waiting for Store Enrol',
+        dateAdded: new Date().toISOString().split('T')[0] // Add date for filtering
+    };
+
+    products.push(product);
+    localStorage.setItem('products', JSON.stringify(products)); // Store products in localStorage
+    alert('Product added successfully!');
+    window.location.href = 'managementAsset.html'; // Redirect to asset management page
+});
+
+// Add Vendor Form Submission
+document.getElementById('addVendorForm')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    
+    const vendor = {
+        manufacturer: document.getElementById('vendorManufacturer').value,
+        contactPerson: document.getElementById('contactPerson').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        productServices: document.getElementById('productServices').value
+    };
+    
+    vendors.push(vendor);
+    localStorage.setItem('vendors', JSON.stringify(vendors)); // Store vendors in localStorage
+    alert('Vendor added successfully!');
+});
+
+// Add Location Form Submission
+document.getElementById('addLocationForm')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    
+    const location = {
+        location: document.getElementById('location').value,
+        floor: document.getElementById('floor').value,
+        roomNumber: document.getElementById('roomNumber').value,
+        building: document.getElementById('building').value
+    };
+    
+    locations.push(location);
+    localStorage.setItem('locations', JSON.stringify(locations)); // Store locations in localStorage
+    alert('Location added successfully!');
+});
+
+// Initialize the page with the product list
 renderProductList();
